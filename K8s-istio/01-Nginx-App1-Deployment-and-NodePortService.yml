@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app1-nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app1-nginx
+  template:
+    metadata:
+      labels:
+        app: app1-nginx
+        run: app-nginx
+        version: app1-group
+    spec:
+      containers:
+        - name: app1-nginx
+          image: stacksimplify/kubenginx:1.0.0
+          ports:
+            - containerPort: 80
+#app2------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app2-nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app2-nginx
+  template:
+    metadata:
+      labels:
+        app: app2-nginx
+        run: app-nginx
+        version: app2-group
+    spec:
+      containers:
+        - name: app1-nginx
+          image: stacksimplify/kubenginx:2.0.0
+          ports:
+            - containerPort: 80
+#app3-----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app3-nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app3-nginx
+  template:
+    metadata:
+      labels:
+        app: app3-nginx
+        run: app-nginx
+        version: app3-group
+    spec:
+      containers:
+        - name: app3-nginx
+          image: stacksimplify/kubenginx:3.0.0
+          ports:
+            - containerPort: 80
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1-nginx-nodeport-service
+  labels:
+    run: app-nginx
+  annotations:
+#Important Note:  Need to add health check path annotations in service level if we are planning to use multiple targets in a load balancer    
+    alb.ingress.kubernetes.io/healthcheck-path: /index.html
+   # alb.ingress.kubernetes.io/healthcheck-path: /app2/index.html
+spec:
+  type: NodePort
+  selector:
+    run: app-nginx
+  ports:
+    - port: 80
+      targetPort: 80
+
+   

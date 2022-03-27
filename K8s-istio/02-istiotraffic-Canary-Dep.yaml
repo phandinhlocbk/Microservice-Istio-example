@@ -1,0 +1,42 @@
+kind: VirtualService
+apiVersion: networking.istio.io/v1alpha3
+metadata:
+  name: a-set-of-routing-rules-we-can-call-this-anything  # "just" a name for this virtualservice
+  namespace: default
+spec:
+  hosts:
+    - app1-nginx-nodeport-service.default.svc.cluster.local  # The Service DNS (ie the regular K8S Service) name that we're applying routing rules to.
+  http:
+    - route:
+        - destination:
+            host: app1-nginx-nodeport-service.default.svc.cluster.local # The Target DNS name
+            subset: app1-group  # The name defined in the DestinationRule
+          weight: 30
+        - destination:
+            host: app1-nginx-nodeport-service.default.svc.cluster.local # The Target DNS name
+            subset: app2-group  # The name defined in the DestinationRule
+          weight: 30
+        - destination:
+            host: app1-nginx-nodeport-service.default.svc.cluster.local # The Target DNS name
+            subset: app3-group  # The name defined in the DestinationRule
+          weight: 40
+  
+---
+kind: DestinationRule       # Defining which pods should be part of each subset
+apiVersion: networking.istio.io/v1alpha3
+metadata:
+  name: grouping-rules-for-our-photograph-canary-release # This can be anything you like.
+  namespace: default
+spec:
+  host: app1-nginx-nodeport-service # Service
+  subsets:
+    - labels:   # SELECTOR.
+        version: app1-group # find pods with label "safe"
+      name: app1-group
+    - labels:
+        version: app2-group
+      name: app2-group
+    - labels:
+        version: app3-group
+      name: app3-group
+  
